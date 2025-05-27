@@ -518,13 +518,11 @@ export default function LandingPage() {
       {/* Login / Register Modal */}
       <Dialog open={loginModalOpen} onOpenChange={setLoginModalOpen}>
   <DialogContent className="sm:max-w-md">
-
+    <DialogTitle className="text-center text-lg font-semibold">Log In to SharpR</DialogTitle>
     <LoginForm onSuccess={closeLoginModal} />
-
-    <p className="text-sm text-center text-muted-foreground mt-4">
-    </p>
   </DialogContent>
 </Dialog>
+
 
 
 

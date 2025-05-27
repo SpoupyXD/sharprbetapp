@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -35,16 +36,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    if (email && password.length >= 6) {
-      const userData = { email, name: email.split("@")[0] };
-      setIsAuthenticated(true);
-      setUser(userData);
-      localStorage.setItem("sharpr-auth", JSON.stringify({ user: userData }));
-      return true;
-    }
+const login = async (email: string, password: string): Promise<boolean> => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error || !data.user) {
+    console.error("Supabase login failed:", error?.message);
     return false;
-  };
+  }
+
+  const userData = { email: data.user.email ?? "", name: data.user.user_metadata?.name ?? "" };
+
+  setIsAuthenticated(true);
+  setUser(userData);
+  localStorage.setItem("sharpr-auth", JSON.stringify({ user: userData }));
+  return true;
+};
+
 
   const logout = () => {
     setIsAuthenticated(false);

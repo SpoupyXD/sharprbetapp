@@ -30,9 +30,22 @@ export function RegisterForm({
   const [showConfirm, setShowConfirm] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const { error } = await supabase.from("users").insert({
+    e.preventDefault();
+  
+    // 1. Register user with Supabase Auth
+    const { data, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+    });
+  
+    if (authError) {
+      console.error("Auth error:", authError.message);
+      alert("Failed to create account: " + authError.message);
+      return;
+    }
+  
+    // 2. Insert extra user info into Supabase 'users' table
+    const { error: dbError } = await supabase.from("users").insert({
       email: form.email,
       first_name: form.firstName,
       last_name: form.lastName,
@@ -41,18 +54,18 @@ export function RegisterForm({
       state: form.state,
       plan: form.plan,
       referral_code: form.code || null,
-    })
-
-    if (error) {
-  console.error("Supabase insert error:", error.message, error.details, error.hint)
-  alert("Error saving your data: " + error.message)
-  return;
-}
-
-
-    if (onSuccess) onSuccess()
-    else window.location.href = "/payment"
-  }
+    });
+  
+    if (dbError) {
+      console.error("❌ Database error details:", dbError.message, dbError.details, dbError.hint)
+      alert("Failed to save user data: " + dbError.message)
+      return
+    }    
+  
+    // ✅ All done — redirect
+    if (onSuccess) onSuccess();
+    else window.location.href = "/payment?plan=" + form.plan;
+  };
 
   return (
     <form
