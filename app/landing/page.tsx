@@ -1,13 +1,19 @@
 "use client"
 
+import { Logo } from "@/components/logo"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog"
+import { RegisterForm } from "@/components/register-form"
+import { LoginForm } from "@/components/login-form"
 import { BarChart3, Wallet, Calendar, Trophy, Zap, CheckCircle2, ArrowRight } from "lucide-react"
 
 export default function LandingPage() {
-  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  // 🟢 All your state hooks go **inside** the function!
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
 
   const openLoginModal = () => setLoginModalOpen(true)
   const closeLoginModal = () => setLoginModalOpen(false)
@@ -15,11 +21,10 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center bg-background">
       {/* Navigation/Header */}
-      {/* Navigation/Header */}
 <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
   <div className="max-w-7xl mx-auto flex h-16 items-center justify-between">
     <div className="flex items-center gap-2">
-      <Image src="/sharpr-logo.png" alt="SharpR" width={120} height={40} className="h-8 w-auto" priority />
+    <Logo className="h-8" />
     </div>
     <nav className="hidden md:flex gap-6">
       <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -28,20 +33,29 @@ export default function LandingPage() {
       <a href="#benefits" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         Benefits
       </a>
-      <a href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-        Pricing
-      </a>
       <a href="#testimonials" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         Testimonials
+      </a>
+      <a href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        Pricing
       </a>
     </nav>
     <div className="flex items-center gap-4">
       <Button variant="ghost" className="text-sm" onClick={openLoginModal}>
         Log in
       </Button>
-      <Button className="text-sm" asChild>
-  <a href="#pricing">Get Started</a>
+      <Button
+  className="text-sm"
+  onClick={() => {
+    const section = document.getElementById("pricing")
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" })
+    }
+  }}
+>
+  Get Started
 </Button>
+
 
     </div>
   </div>
@@ -60,9 +74,16 @@ export default function LandingPage() {
               designed for serious bettors.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button size="lg" className="w-full sm:w-auto" onClick={openLoginModal}>
+            <Button
+  size="lg"
+  className="w-full sm:w-auto"
+  onClick={() =>
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })
+  }
+>
   Start Tracking
 </Button>
+
 <Button
   size="lg"
   variant="outline"
@@ -285,7 +306,7 @@ export default function LandingPage() {
               Choose the plan that fits your betting style
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-4xl mx-auto items-start justify-center">
             <div className="bg-background p-6 rounded-lg border shadow-sm flex flex-col h-full">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-semibold mb-2">Free</h3>
@@ -310,9 +331,11 @@ export default function LandingPage() {
                   <span>Track 3 bookmakers</span>
                 </li>
               </ul>
-              <Button className="w-full mt-auto" onClick={openLoginModal}>
-  Sign Up
-</Button>
+              <div className="mt-auto">
+  <Link href="/register?plan=free">
+    <Button className="w-full">Sign Up</Button>
+  </Link>
+</div>
 
             </div>
             <div className="bg-background p-6 rounded-lg border shadow-sm relative flex flex-col h-full">
@@ -346,43 +369,25 @@ export default function LandingPage() {
                   <span>Dutching calculator</span>
                 </li>
               </ul>
-              <Button className="w-full mt-auto" onClick={openLoginModal}>
-  Sign Up
-</Button>
-
-            </div>
-            <div className="bg-background p-6 rounded-lg border shadow-sm flex flex-col h-full
-            ">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold mb-2">Pro Annual</h3>
-                <div className="text-4xl font-bold mb-2">$89.99</div>
-                <p className="text-muted-foreground">per year</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
-                  <span>Everything in Pro</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
-                  <span>Save 25% vs monthly</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
-                  <span>CSV data export</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
-                  <span>Priority support</span>
-                </li>
-              </ul>
-              <Button className="w-full mt-auto" onClick={openLoginModal}>
-  Sign Up
-</Button>
+              <div className="mt-auto">
+  <Link href="/register?plan=pro">
+    <Button className="w-full">Sign Up</Button>
+  </Link>
+</div>
 
             </div>
           </div>
         </div>
+        <p className="text-center text-sm text-muted-foreground mt-6">
+  Already have an account?{" "}
+  <button
+    onClick={() => setLoginModalOpen(true)}
+    className="text-primary underline hover:text-primary/80"
+  >
+    Log in
+  </button>
+</p>
+
       </section>
 
       {/* CTA Section */}
@@ -392,10 +397,18 @@ export default function LandingPage() {
           <p className="text-xl max-w-[800px] mx-auto mb-8 text-primary-foreground/90">
             Join thousands of bettors who are tracking, analyzing, and winning with SharpR.
           </p>
-          <Button size="lg" variant="secondary" className="text-primary" onClick={openLoginModal}>
-            Get Started Free
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Button
+  size="lg"
+  variant="secondary"
+  className="text-primary"
+  onClick={() =>
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })
+  }
+>
+  Get Started Free
+  <ArrowRight className="ml-2 h-4 w-4" />
+</Button>
+
         </div>
       </section>
 
@@ -502,6 +515,20 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      {/* Login / Register Modal */}
+      <Dialog open={loginModalOpen} onOpenChange={setLoginModalOpen}>
+  <DialogContent className="sm:max-w-md">
+
+    <LoginForm onSuccess={closeLoginModal} />
+
+    <p className="text-sm text-center text-muted-foreground mt-4">
+    </p>
+  </DialogContent>
+</Dialog>
+
+
+
     </div>
+    
   )
 }
