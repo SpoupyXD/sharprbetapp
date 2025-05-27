@@ -15,27 +15,38 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center bg-background">
       {/* Navigation/Header */}
-      <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image src="/sharpr-logo.png" alt="SharpR" width={120} height={40} className="h-8 w-auto" priority />
-          </div>
-          <nav className="hidden md:flex gap-6">
-            <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</a>
-            <a href="#benefits" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Benefits</a>
-            <a href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Pricing</a>
-            <a href="#testimonials" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Testimonials</a>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-sm" onClick={openLoginModal}>
-              Log in
-            </Button>
-            <Button className="text-sm" onClick={openLoginModal}>
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Navigation/Header */}
+<header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <div className="max-w-7xl mx-auto flex h-16 items-center justify-between">
+    <div className="flex items-center gap-2">
+      <Image src="/sharpr-logo.png" alt="SharpR" width={120} height={40} className="h-8 w-auto" priority />
+    </div>
+    <nav className="hidden md:flex gap-6">
+      <a href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        Features
+      </a>
+      <a href="#benefits" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        Benefits
+      </a>
+      <a href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        Pricing
+      </a>
+      <a href="#testimonials" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        Testimonials
+      </a>
+    </nav>
+    <div className="flex items-center gap-4">
+      <Button variant="ghost" className="text-sm" onClick={openLoginModal}>
+        Log in
+      </Button>
+      <Button className="text-sm" asChild>
+  <a href="#pricing">Get Started</a>
+</Button>
+
+    </div>
+  </div>
+</header>
+
 
       {/* Hero Section */}
       <section className="pt-24 md:pt-32 pb-16 md:pb-24 w-full">
@@ -49,12 +60,20 @@ export default function LandingPage() {
               designed for serious bettors.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button size="lg" className="w-full sm:w-auto" onClick={openLoginModal}>
-                Start Tracking Free
-              </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Explore Features
-              </Button>
+            <Button size="lg" className="w-full sm:w-auto" onClick={openLoginModal}>
+  Start Tracking
+</Button>
+<Button
+  size="lg"
+  variant="outline"
+  className="w-full sm:w-auto"
+  asChild
+>
+  <a href="#features">
+    Explore Features
+  </a>
+</Button>
+
             </div>
           </div>
           <div className="flex-1 w-full max-w-[600px] rounded-lg overflow-hidden shadow-xl border bg-muted/10 flex items-center justify-center min-h-[320px]">
@@ -71,7 +90,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="w-full bg-muted/50 py-24">
+      <section id="features" className="w-full bg-muted/50 py-24 ">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Features for Serious Bettors</h2>
@@ -266,8 +285,8 @@ export default function LandingPage() {
               Choose the plan that fits your betting style
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            <div className="bg-background p-6 rounded-lg border shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
+            <div className="bg-background p-6 rounded-lg border shadow-sm flex flex-col h-full">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-semibold mb-2">Free</h3>
                 <div className="text-4xl font-bold mb-2">$0</div>
@@ -291,11 +310,12 @@ export default function LandingPage() {
                   <span>Track 3 bookmakers</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full" onClick={openLoginModal}>
-                Get Started
-              </Button>
+              <Button className="w-full mt-auto" onClick={openLoginModal}>
+  Sign Up
+</Button>
+
             </div>
-            <div className="bg-background p-6 rounded-lg border shadow-sm relative">
+            <div className="bg-background p-6 rounded-lg border shadow-sm relative flex flex-col h-full">
               <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
                 Popular
               </div>
@@ -326,11 +346,13 @@ export default function LandingPage() {
                   <span>Dutching calculator</span>
                 </li>
               </ul>
-              <Button className="w-full" onClick={openLoginModal}>
-                Subscribe Now
-              </Button>
+              <Button className="w-full mt-auto" onClick={openLoginModal}>
+  Sign Up
+</Button>
+
             </div>
-            <div className="bg-background p-6 rounded-lg border shadow-sm">
+            <div className="bg-background p-6 rounded-lg border shadow-sm flex flex-col h-full
+            ">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-semibold mb-2">Pro Annual</h3>
                 <div className="text-4xl font-bold mb-2">$89.99</div>
@@ -354,9 +376,10 @@ export default function LandingPage() {
                   <span>Priority support</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full" onClick={openLoginModal}>
-                Subscribe Annually
-              </Button>
+              <Button className="w-full mt-auto" onClick={openLoginModal}>
+  Sign Up
+</Button>
+
             </div>
           </div>
         </div>
