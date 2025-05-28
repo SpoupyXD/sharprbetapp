@@ -1,6 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
+
 import { DollarSign, Percent, BookOpen, BarChart3, RefreshCw } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookiePerformanceSummary } from "@/components/bookie-performance-summary"
@@ -10,9 +13,57 @@ import { Button } from "@/components/ui/button"
 import { CompactCalendar } from "@/components/compact-calendar"
 import { SystemTime } from "@/components/system-time"
 
-export default function Dashboard() {
+export default function DashboardPage() {
+  // 🟢 ALL HOOKS MUST BE CALLED AT THE TOP, BEFORE ANY RETURN!
+  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<any>(null)
+  const router = useRouter()
   const [profitDialogOpen, setProfitDialogOpen] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState("month")
+
+  useEffect(() => {
+    const checkProfile = async () => {
+      // 1. Get the logged-in user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.replace("/login")
+        return
+      }
+
+      // 2. Query the users table for a profile row matching this user_id
+      const { data: userRows, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", user.id)
+        .limit(1)
+
+      if (error) {
+        setLoading(false)
+        return
+      }
+
+      // 3. If NO user row, redirect to complete-profile
+      if (!userRows || userRows.length === 0) {
+        router.replace("/complete-profile")
+        return
+      }
+
+      // 4. User has completed profile!
+      setProfile(userRows[0])
+      setLoading(false)
+    }
+
+    checkProfile()
+  }, [router])
+
+  if (loading) {
+    // Show loading state while checking profile
+    return (
+      <div className="w-full flex justify-center items-center py-20">
+        <span className="text-lg font-semibold">Loading...</span>
+      </div>
+    )
+  }
 
   const profitData = {
     day: { amount: "$45.89", change: "+5.2%" },
@@ -21,7 +72,6 @@ export default function Dashboard() {
     year: { amount: "$5,432.10", change: "+35.7%" },
   }
 
-  // Performance data for the line chart
   const performanceData = [
     { date: "Jan 1", profit: 120 },
     { date: "Jan 15", profit: 210 },
@@ -37,8 +87,9 @@ export default function Dashboard() {
 
   return (
     <div className="flex">
-      {/* Main Content */}
+      {/* Left Side */}
       <div className="flex-1 p-6">
+        {/* Top Bar */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
@@ -55,7 +106,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Metrics */}
         <div className="grid gap-6 md:grid-cols-3 mb-6">
           <Card className="metric-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
@@ -97,107 +148,61 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Tabs and Chart */}
-        <div className="mb-6">
-          <div className="flex space-x-1 mb-4 p-1 bg-muted/20 rounded-lg w-fit">
-            <Button variant="ghost" className="modern-button active px-4 py-2">
-              Performance
-            </Button>
-            <Button variant="ghost" className="modern-button px-4 py-2">
-              Analysis
-            </Button>
-            <Button variant="ghost" className="modern-button px-4 py-2">
-              History
-            </Button>
-          </div>
+        {/* Chart */}
+        <Card className="modern-card modern-chart">
+          <CardContent className="p-6">
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={performanceData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.6)" />
+                  <YAxis stroke="rgba(255,255,255,0.6)" tickFormatter={(v) => `$${v}`} />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="profit"
+                    stroke="#60a5fa"
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: "#60a5fa" }}
+                    activeDot={{ r: 6, fill: "#60a5fa" }}
+                    name="Profit"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card className="modern-card modern-chart">
-            <CardContent className="p-6">
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={performanceData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis dataKey="date" stroke="rgba(255,255,255,0.6)" tick={{ fill: "rgba(255,255,255,0.6)" }} />
-                    <YAxis
-                      tickFormatter={(value) => `$${value}`}
-                      domain={["auto", "auto"]}
-                      stroke="rgba(255,255,255,0.6)"
-                      tick={{ fill: "rgba(255,255,255,0.6)" }}
-                    />
-                    <Tooltip
-                      formatter={(value) => [`$${value}`, "Profit"]}
-                      labelFormatter={(label) => `Date: ${label}`}
-                      contentStyle={{
-                        backgroundColor: "rgba(20, 20, 20, 0.95)",
-                        borderColor: "rgba(255, 255, 255, 0.1)",
-                        color: "#e5e7eb",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="profit"
-                      stroke="#60a5fa"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: "#60a5fa" }}
-                      activeDot={{ r: 6, fill: "#60a5fa" }}
-                      name="Profit"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bookmaker Performance */}
-        <BookiePerformanceSummary />
-
+        {/* Breakdown Modal */}
         <Dialog open={profitDialogOpen} onOpenChange={setProfitDialogOpen}>
           <DialogContent className="sm:max-w-md modern-card">
             <DialogHeader>
               <DialogTitle>Profit Breakdown</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
-              <div
-                className={`cursor-pointer rounded-lg border p-4 transition-all ${selectedPeriod === "day" ? "border-primary bg-primary/10" : "border-border hover:border-border/80"}`}
-                onClick={() => setSelectedPeriod("day")}
-              >
-                <div className="text-sm font-medium text-muted-foreground">Daily</div>
-                <div className="mt-1 text-2xl font-bold">{profitData.day.amount}</div>
-                <div className="mt-1 text-xs success-text">{profitData.day.change}</div>
-              </div>
-              <div
-                className={`cursor-pointer rounded-lg border p-4 transition-all ${selectedPeriod === "week" ? "border-primary bg-primary/10" : "border-border hover:border-border/80"}`}
-                onClick={() => setSelectedPeriod("week")}
-              >
-                <div className="text-sm font-medium text-muted-foreground">Weekly</div>
-                <div className="mt-1 text-2xl font-bold">{profitData.week.amount}</div>
-                <div className="mt-1 text-xs success-text">{profitData.week.change}</div>
-              </div>
-              <div
-                className={`cursor-pointer rounded-lg border p-4 transition-all ${selectedPeriod === "month" ? "border-primary bg-primary/10" : "border-border hover:border-border/80"}`}
-                onClick={() => setSelectedPeriod("month")}
-              >
-                <div className="text-sm font-medium text-muted-foreground">Monthly</div>
-                <div className="mt-1 text-2xl font-bold">{profitData.month.amount}</div>
-                <div className="mt-1 text-xs success-text">{profitData.month.change}</div>
-              </div>
-              <div
-                className={`cursor-pointer rounded-lg border p-4 transition-all ${selectedPeriod === "year" ? "border-primary bg-primary/10" : "border-border hover:border-border/80"}`}
-                onClick={() => setSelectedPeriod("year")}
-              >
-                <div className="text-sm font-medium text-muted-foreground">Yearly</div>
-                <div className="mt-1 text-2xl font-bold">{profitData.year.amount}</div>
-                <div className="mt-1 text-xs success-text">{profitData.year.change}</div>
-              </div>
+              {["day", "week", "month", "year"].map((period) => (
+                <div
+                  key={period}
+                  className={`cursor-pointer rounded-lg border p-4 transition-all ${
+                    selectedPeriod === period ? "border-primary bg-primary/10" : "hover:border-border"
+                  }`}
+                  onClick={() => setSelectedPeriod(period)}
+                >
+                  <div className="text-sm font-medium text-muted-foreground">{period}</div>
+                  <div className="mt-1 text-2xl font-bold">{profitData[period as keyof typeof profitData].amount}</div>
+                  <div className="mt-1 text-xs success-text">{profitData[period as keyof typeof profitData].change}</div>
+                </div>
+              ))}
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Bookmaker Summary */}
+        <BookiePerformanceSummary />
       </div>
 
-      {/* Right Sidebar - Moved to far right and made smaller */}
+      {/* Sidebar */}
       <div className="w-72 modern-sidebar border-l border-border/50 p-4 space-y-4">
         <div className="scale-90 origin-top">
           <SystemTime />
