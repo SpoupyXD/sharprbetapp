@@ -30,11 +30,18 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
   }
 
   // ⬇️ Normal render if authenticated or on landing page
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
+  return pathname === "/landing" ? (
+    <>{children}</>
+  ) : (
+    <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <main className="pt-16">{children}</main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto pt-16">
+          {children}
+        </main>
+      </div>
     </div>
-  );
+  )
+  ;
 }

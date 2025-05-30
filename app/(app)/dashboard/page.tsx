@@ -86,25 +86,13 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">   
       {/* Left Side */}
-      <div className="flex-1 p-6">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <BarChart3 className="h-6 w-6 accent-text" />
-              <h1 className="text-2xl font-semibold">Betting Overview</h1>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="status-indicator"></div>
-              <span className="text-sm success-text font-medium">LIVE</span>
-              <Button variant="ghost" size="icon" className="h-8 w-8 modern-button">
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 p-6 pt-16">
+      <div className="mb-6">
+  <h1 className="text-3xl font-bold">Betting Overview</h1>
+  <p className="text-muted-foreground">Your monthly performance breakdown</p>
+</div>
 
         {/* Metrics */}
         <div className="grid gap-6 md:grid-cols-3 mb-6">
@@ -203,7 +191,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Sidebar */}
-      <div className="w-72 modern-sidebar border-l border-border/50 p-4 space-y-4">
+      <div className="w-72 border-l border-border/50 p-4 space-y-4 min-h-screen">
         <div className="scale-90 origin-top">
           <SystemTime />
         </div>

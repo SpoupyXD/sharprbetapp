@@ -1,119 +1,136 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, BookOpen, CreditCard, Home, Settings, Settings2, DogIcon as Horse } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import {
+  BarChart3,
+  BookOpen,
+  CreditCard,
+  Home,
+  Settings,
+  Settings2,
+  Dog as Horse,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 
-// ✅ This is your function declaration!
 export function Sidebar() {
   const pathname = usePathname()
-  const [isVisible, setIsVisible] = useState(false)
+  const [expanded, setExpanded] = useState(true)
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      // Show sidebar when mouse is within 50px of left edge
-      if (e.clientX <= 50) {
-        setIsVisible(true)
-      }
-      // Hide sidebar when mouse moves away from sidebar area (beyond 300px from left)
-      else if (e.clientX > 300) {
-        setIsVisible(false)
-      }
-    }
-
-    document.addEventListener("mousemove", handleMouseMove)
-    return () => document.removeEventListener("mousemove", handleMouseMove)
-  }, [])
+  const toggleSidebar = () => setExpanded(!expanded)
 
   return (
     <div
-      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 modern-sidebar border-r border-border/50 p-4 z-50 transition-transform duration-300 ease-in-out ${
-        isVisible ? "translate-x-0" : "-translate-x-full"
-      }`}
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
+      className={`h-full border-r border-border/50 bg-black transition-all duration-300 ease-in-out ${
+        expanded ? "w-56" : "w-16"
+      } flex flex-col`}
     >
-      <nav className="space-y-2">
-        <Link href="/">
-          <Button variant="ghost" className={`w-full justify-start modern-button ${pathname === "/" ? "active" : ""}`}>
-            <Home className="mr-3 h-4 w-4" />
-            Dashboard
-          </Button>
-        </Link>
-        <Link href="/bets">
-          <Button
-            variant="ghost"
-            className={`w-full justify-start modern-button ${pathname === "/bets" ? "active" : ""}`}
-          >
-            <BookOpen className="mr-3 h-4 w-4" />
-            My Bets
-          </Button>
-        </Link>
-        <Link href="/horse-racing">
-          <Button
-            variant="ghost"
-            className={`w-full justify-start modern-button ${pathname === "/horse-racing" ? "active" : ""}`}
-          >
-            <Horse className="mr-3 h-4 w-4" />
-            Horse Racing
-          </Button>
-        </Link>
-        <Link href="/bookies">
-          <Button
-            variant="ghost"
-            className={`w-full justify-start modern-button ${pathname === "/bookies" ? "active" : ""}`}
-          >
-            <CreditCard className="mr-3 h-4 w-4" />
-            Bookmakers
-          </Button>
-        </Link>
-        <Link href="/performance">
-          <Button
-            variant="ghost"
-            className={`w-full justify-start modern-button ${pathname === "/performance" ? "active" : ""}`}
-          >
-            <BarChart3 className="mr-3 h-4 w-4" />
-            Analytics
-          </Button>
-        </Link>
-        <Link href="/setup">
-          <Button
-            variant="ghost"
-            className={`w-full justify-start modern-button ${pathname === "/setup" ? "active" : ""}`}
-          >
-            <Settings2 className="mr-3 h-4 w-4" />
-            Setup
-          </Button>
-        </Link>
-        <Link href="/settings">
-          <Button
-            variant="ghost"
-            className={`w-full justify-start modern-button ${pathname === "/settings" ? "active" : ""}`}
-          >
-            <Settings className="mr-3 h-4 w-4" />
-            Settings
-          </Button>
-        </Link>
+      {/* Toggle Button */}
+      <div className="flex justify-end px-2 py-2">
+        <button
+          onClick={toggleSidebar}
+          className="text-zinc-400 hover:text-white transition"
+        >
+          {expanded ? <ChevronLeft /> : <ChevronRight />}
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex flex-col space-y-2 px-2">
+        <SidebarItem
+          icon={Home}
+          label="Dashboard"
+          href="/dashboard"
+          active={pathname === "/dashboard"}
+          expanded={expanded}
+        />
+        <SidebarItem
+          icon={BookOpen}
+          label="My Bets"
+          href="/bets"
+          active={pathname === "/bets"}
+          expanded={expanded}
+        />
+        <SidebarItem
+          icon={Horse}
+          label="Horse Racing"
+          href="/horse-racing"
+          active={pathname === "/horse-racing"}
+          expanded={expanded}
+        />
+        <SidebarItem
+          icon={CreditCard}
+          label="Bookmakers"
+          href="/bookies"
+          active={pathname === "/bookies"}
+          expanded={expanded}
+        />
+        <SidebarItem
+          icon={BarChart3}
+          label="Analytics"
+          href="/performance"
+          active={pathname === "/performance"}
+          expanded={expanded}
+        />
+        <SidebarItem
+          icon={Settings2}
+          label="Setup"
+          href="/setup"
+          active={pathname === "/setup"}
+          expanded={expanded}
+        />
+        <SidebarItem
+          icon={Settings}
+          label="Settings"
+          href="/settings"
+          active={pathname === "/settings"}
+          expanded={expanded}
+        />
       </nav>
 
-      <div className="mt-8 pt-8 border-t border-border/50">
-        <div className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">System Status</div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Status</span>
-            <div className="flex items-center space-x-2">
-              <div className="status-indicator"></div>
-              <span className="success-text text-xs">Online</span>
-            </div>
+      {/* Footer info (optional) */}
+      <div className={`${expanded ? "mt-auto px-4 py-6 text-xs text-muted-foreground" : "hidden"}`}>
+        <div className="mb-2">System Status</div>
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span>Status</span>
+            <span className="text-green-500">Online</span>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Version</span>
-            <span className="text-xs">v2.1.0</span>
+          <div className="flex justify-between">
+            <span>Version</span>
+            <span>v2.1.0</span>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function SidebarItem({
+  icon: Icon,
+  label,
+  href,
+  active,
+  expanded,
+}: {
+  icon: React.ElementType
+  label: string
+  href: string
+  active: boolean
+  expanded: boolean
+}) {
+  return (
+    <Link href={href}>
+      <div
+        className={`flex items-center transition-colors rounded-md px-3 py-2 cursor-pointer ${
+          active ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+        } ${expanded ? "justify-start" : "justify-center"}`}
+      >
+        <Icon className="h-5 w-5" />
+        {expanded && <span className="ml-3 text-sm">{label}</span>}
+      </div>
+    </Link>
   )
 }
