@@ -6,35 +6,29 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PlusCircle, TrendingUp, TrendingDown, Clock, Target, DollarSign, Percent } from "lucide-react"
 import { AddBetDialog } from "@/components/add-bet-dialog"
-
-// Helper functions for localStorage
-const BETS_STORAGE_KEY = "generalBets"
-
-const saveBets = (bets: Bet[]) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(BETS_STORAGE_KEY, JSON.stringify(bets))
-  }
-}
-
-const loadBets = (): Bet[] => {
-  if (typeof window !== "undefined") {
-    const storedBets = localStorage.getItem(BETS_STORAGE_KEY)
-    return storedBets ? JSON.parse(storedBets) : []
-  }
-  return []
-}
+import { supabase } from "@/lib/supabase"
 
 export default function BetsPage() {
   const [bets, setBets] = useState<Bet[]>([])
   const [isAddBetOpen, setIsAddBetOpen] = useState(false)
   const [editingBet, setEditingBet] = useState<Bet | null>(null)
 
-  // Load bets from localStorage on component mount
+  // Fetch bets from Supabase on mount
   useEffect(() => {
-    const storedBets = loadBets()
-    if (storedBets.length > 0) {
-      setBets(storedBets)
+    const fetchBets = async () => {
+      const { data, error } = await supabase
+        .from("bets")
+        .select("*")
+        // .eq("user_id", user.id) // Uncomment this if you have user-based filtering
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        setBets([])
+        return
+      }
+      setBets(data || [])
     }
+    fetchBets()
   }, [])
 
   // Calculate statistics
@@ -49,35 +43,38 @@ export default function BetsPage() {
   const roi = totalStaked > 0 ? (totalProfit / totalStaked) * 100 : 0
   const averageOdds = bets.length > 0 ? bets.reduce((sum, bet) => sum + bet.odds, 0) / bets.length : 0
 
-  const cycleBetStatus = (id: string) => {
-    setBets((currentBets) => {
-      const updatedBets = currentBets.map((bet) => {
-        if (bet.id === id) {
-          const statuses: Bet["status"][] = ["Pending", "Won", "Lost", "Void"]
-          const currentIndex = statuses.indexOf(bet.status)
-          const nextIndex = (currentIndex + 1) % statuses.length
-          const newStatus = statuses[nextIndex]
+  // Update bet status (cycle through Pending, Won, Lost, Void)
+  const cycleBetStatus = async (id: string) => {
+    // Find the current bet
+    const currentBet = bets.find((bet) => bet.id === id)
+    if (!currentBet) return
 
-          // Calculate profit/loss based on status
-          let profitLoss = 0
-          if (newStatus === "Won") {
-            profitLoss = bet.stake * bet.odds - bet.stake
-          } else if (newStatus === "Lost") {
-            profitLoss = -bet.stake
-          }
+    const statuses: Bet["status"][] = ["Pending", "Won", "Lost", "Void"]
+    const currentIndex = statuses.indexOf(currentBet.status)
+    const nextIndex = (currentIndex + 1) % statuses.length
+    const newStatus = statuses[nextIndex]
 
-          return { ...bet, status: newStatus, profitLoss }
-        }
-        return bet
-      })
+    // Calculate profit/loss based on new status
+    let profitLoss = 0
+    if (newStatus === "Won") {
+      profitLoss = currentBet.stake * currentBet.odds - currentBet.stake
+    } else if (newStatus === "Lost") {
+      profitLoss = -currentBet.stake
+    }
 
-      // Save to localStorage
-      saveBets(updatedBets)
-      return updatedBets
-    })
+    // Update the bet in Supabase
+    await supabase
+      .from("bets")
+      .update({ status: newStatus, profitLoss })
+      .eq("id", id)
+
+    // Re-fetch bets to update UI
+    const { data } = await supabase.from("bets").select("*")
+    setBets(data || [])
   }
 
-  const handleAddBet = (newBet: Omit<Bet, "id" | "profitLoss">) => {
+  // Add new bet to Supabase
+  const handleAddBet = async (newBet: Omit<Bet, "id" | "profitLoss">) => {
     const id = `BET-${Date.now()}`
     let profitLoss = 0
 
@@ -93,22 +90,22 @@ export default function BetsPage() {
       profitLoss,
     }
 
-    setBets((currentBets) => {
-      const updatedBets = [...currentBets, betWithId]
-      // Save to localStorage
-      saveBets(updatedBets)
-      return updatedBets
-    })
+    await supabase.from("bets").insert([betWithId])
+    // Re-fetch bets after adding
+    const { data } = await supabase.from("bets").select("*")
+    setBets(data || [])
 
     setIsAddBetOpen(false)
   }
 
+  // Open dialog to edit bet
   const handleEditBet = (bet: Bet) => {
     setEditingBet(bet)
     setIsAddBetOpen(true)
   }
 
-  const handleUpdateBet = (updatedBet: Omit<Bet, "id" | "profitLoss">) => {
+  // Update existing bet in Supabase
+  const handleUpdateBet = async (updatedBet: Omit<Bet, "id" | "profitLoss">) => {
     if (!editingBet) return
 
     let profitLoss = 0
@@ -118,15 +115,14 @@ export default function BetsPage() {
       profitLoss = -updatedBet.stake
     }
 
-    setBets((currentBets) => {
-      const updatedBets = currentBets.map((bet) =>
-        bet.id === editingBet.id ? { ...updatedBet, id: bet.id, profitLoss } : bet,
-      )
+    await supabase
+      .from("bets")
+      .update({ ...updatedBet, profitLoss })
+      .eq("id", editingBet.id)
 
-      // Save to localStorage
-      saveBets(updatedBets)
-      return updatedBets
-    })
+    // Re-fetch bets after updating
+    const { data } = await supabase.from("bets").select("*")
+    setBets(data || [])
 
     setEditingBet(null)
     setIsAddBetOpen(false)
