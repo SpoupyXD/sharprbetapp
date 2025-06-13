@@ -6,7 +6,7 @@ export async function getUserBets(userId: string): Promise<Bet[]> {
   const { data, error } = await supabase
     .from("bets")
     .select("*")
-    .eq("user_id", userId)
+    .eq("", userId)
     .order("created_at", { ascending: false })
 
   if (error) {
