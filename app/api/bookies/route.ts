@@ -20,21 +20,28 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from("bookmaker_accounts")
-      .select(
-        [
-          "id",
-          "name",
-          "type",
-          "website",
-          "balance",
-          "owner",
-          "link_group",
-          "color",
-          "notes",
-          "created_at",
-          "updated_at"
-        ].join(",")
-      )
+      .select(`
+        id,
+        name,
+        type,
+        website,
+        balance,
+        bonus_bets,
+        bonus_expiry,
+        owner,
+        link_group,
+        color,
+        notes,
+        created_at,
+        updated_at,
+        bonus_records (
+          id,
+          amount,
+          type,
+          expiry,
+          created_at
+        )
+      `)
       .order("name", { ascending: true });
 
     if (error) {
@@ -55,107 +62,43 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function PUT(request: Request) {
   try {
-    const body = await request.json();
-    console.log("🔍 POST /api/bookies request body:", body);
+    const { id, balance, bonus_bets } = await request.json();
 
-    const {
-      name,
-      type,
-      website = null,
-      balance,
-      owner = null,
-      linkGroup = null,
-      color = null,
-      notes = null,
-    } = body;
-
-    // Validation
-    if (typeof name !== "string" || !name.trim()) {
+    if (!id || typeof balance !== "number" || typeof bonus_bets !== "number") {
       return NextResponse.json(
-        { error: "Account name is required" },
-        { status: 400 }
-      );
-    }
-    if (!["bookie", "exchange", "bank"].includes(type)) {
-      return NextResponse.json(
-        { error: "Invalid account type" },
-        { status: 400 }
-      );
-    }
-    if (typeof balance !== "number" || isNaN(balance)) {
-      return NextResponse.json(
-        { error: "Balance must be a number" },
+        { error: "id, balance and bonus_bets are required" },
         { status: 400 }
       );
     }
 
-    // Build payload matching table columns
-    const insertPayload: Record<string, unknown> = {
-      name: name.trim(),
-      type,
-      website:
-        typeof website === "string" && website.trim()
-          ? website.trim()
-          : null,
-      balance,
-      owner:
-        typeof owner === "string" && owner.trim()
-          ? owner.trim()
-          : null,
-      link_group:
-        typeof linkGroup === "string" && linkGroup.trim()
-          ? linkGroup.trim()
-          : null,
-      color:
-        typeof color === "string" && color.trim()
-          ? color.trim()
-          : null,
-      notes:
-        typeof notes === "string" && notes.trim()
-          ? notes.trim()
-          : null,
-    };
+const expiryDate =
+  bonusAmt > 0
+    ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
 
-    console.log("🔧 Inserting payload:", insertPayload);
-
-    const { data: created, error } = await supabase
-      .from("bookmaker_accounts")
-      .insert(insertPayload)
-      .select(
-        [
-          "id",
-          "name",
-          "type",
-          "website",
-          "balance",
-          "owner",
-          "link_group",
-          "color",
-          "notes",
-          "created_at",
-          "updated_at"
-        ].join(",")
-      )
-      .single();
+const { data, error } = await supabase
+  .from("bookmaker_accounts")
+  .update({ balance: newBalance, bonus_bets: newBonus })
+  .eq("id", bookie_id)
+  .select("*")
+  .single();
 
     if (error) {
-      console.error(
-        "POST /api/bookies Supabase error:",
-        error.message,
-        error.details || ""
-      );
+      console.error("PUT /api/bookies Supabase error:", error);
       return NextResponse.json(
-        { error: "DB insert failed: " + (error.message || "Unknown error") },
+        { error: "Update failed: " + error.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json(data, { status: 200 });
   } catch (err: any) {
-    console.error("POST /api/bookies unexpected error:", err);
-    const msg = err?.message || "Unexpected server error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("PUT /api/bookies unexpected error:", err);
+    return NextResponse.json(
+      { error: err.message ?? "Unexpected server error" },
+      { status: 500 }
+    );
   }
 }
