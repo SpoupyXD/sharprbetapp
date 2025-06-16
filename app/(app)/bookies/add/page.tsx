@@ -8,10 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, Lock, Save } from "lucide-react";
+import { ChevronLeft, Save } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AddBookiePage() {
@@ -22,6 +20,9 @@ export default function AddBookiePage() {
   const [name, setName] = useState("");
   const [website, setWebsite] = useState("");
   const [balance, setBalance] = useState("");
+  const [owner, setOwner] = useState("");
+  const [color, setColor] = useState("#000000");
+  const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
@@ -40,13 +41,16 @@ export default function AddBookiePage() {
       type: accountType,
       website: website.trim() || null,
       balance: parseFloat(balance),
-      owner: null,
-      link_group: null,
-      color: null,
-      notes: null,
+      owner: owner.trim() || null,
+      color: color || null,
+      notes: notes.trim() || null,
     };
 
-    const res = await fetch("/api/bookies", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const res = await fetch("/api/bookies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
     const result = await res.json();
 
     if (!res.ok) {
@@ -57,7 +61,7 @@ export default function AddBookiePage() {
     }
 
     setIsSaving(false);
-  }, [accountType, name, website, balance, router, toast]);
+  }, [accountType, name, website, balance, owner, color, notes, router, toast]);
 
   return (
     <div className="p-6 md:p-10">
@@ -81,30 +85,52 @@ export default function AddBookiePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label>Account Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Bet365" />
+            {/* Left column */}
+            <div className="space-y-4">
+              <div>
+                <Label>Account Name</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Bet365" />
+              </div>
+              <div>
+                <Label>Type</Label>
+                <Select value={accountType} onValueChange={(val) => setAccountType(val)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bookie">Bookmaker</SelectItem>
+                    <SelectItem value="exchange">Exchange</SelectItem>
+                    <SelectItem value="bank">Bank</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Website URL</Label>
+                <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" />
+              </div>
+              <div>
+                <Label>Balance ($)</Label>
+                <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="1000" />
+              </div>
+              <div>
+                <Label>Owner</Label>
+                <Input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Owner name" />
+              </div>
+            </div>
 
-              <Label>Type</Label>
-              <Select defaultValue="bookie" onValueChange={(val) => setAccountType(val)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bookie">Bookmaker</SelectItem>
-                  <SelectItem value="exchange">Exchange</SelectItem>
-                  <SelectItem value="bank">Bank</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Label>Website URL</Label>
-              <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" />
-
-              <Label>Balance ($)</Label>
-              <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="1000" />
+            {/* Right column */}
+            <div className="space-y-4">
+              <div>
+                <Label>Color</Label>
+                <Input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any notes..." />
+              </div>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
           <Button onClick={handleSave} disabled={isSaving}>
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Saving..." : "Save Account"}
